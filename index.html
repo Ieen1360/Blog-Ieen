@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<title>Blog do Ieen com Verificação e Admins</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
+    color: #000;
+    transition: background 0.5s, color 0.5s;
+  }
+  body.admin-theme-T {
+    background: linear-gradient(135deg, #000000, #4b0082, #ff0000);
+    color: #eee;
+  }
+  body.admin-theme-Ieen {
+    background: linear-gradient(135deg, #004080, #00bfff, #00ffaa);
+    color: #eef7ff;
+  }
+  .post {
+    background: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #ccc;
+    position: relative;
+    color: inherit;
+    transition: background 0.5s, color 0.5s;
+  }
+  body.admin-theme-T .post {
+    background: rgba(30, 0, 30, 0.8);
+    box-shadow: 0 0 12px #aa0044;
+    color: #f0d0ff;
+  }
+  body.admin-theme-Ieen .post {
+    background: rgba(0, 40, 70, 0.8);
+    box-shadow: 0 0 12px #00cccc;
+    color: #d0f0ff;
+  }
+  .comments {
+    margin-top: 10px;
+  }
+  .comment {
+    margin-left: 10px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: inherit;
+  }
+  .like {
+    color: red;
+    cursor: pointer;
+    user-select: none;
+  }
+  #author {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #aaa;
+    z-index: 1000;
+    transition: background 0.5s, color 0.5s;
+  }
+  body.admin-theme-T #author {
+    background: rgba(40,0,40,0.9);
+    color: #f0d0ff;
+  }
+  body.admin-theme-Ieen #author {
+    background: rgba(0, 60, 90, 0.9);
+    color: #c0f0ff;
+  }
+  #adminPanel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 360px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #aaa;
+    z-index: 1000;
+    display: none;
+    transition: background 0.5s, color 0.5s;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  body.admin-theme-T #adminPanel {
+    background: rgba(40,0,40,0.9);
+    color: #f0d0ff;
+    box-shadow: 0 0 15px #ff0044;
+  }
+  body.admin-theme-Ieen #adminPanel {
+    background: rgba(0,60,90,0.9);
+    color: #c0f0ff;
+    box-shadow: 0 0 15px #00ccff;
+  }
+  #adminPanel h3 {
+    margin-top: 0;
+  }
+  #adminTabs button {
+    margin-right: 5px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  #adminContent > div {
+    display: none;
+  }
+  #adminContent > div.active {
+    display: block;
+  }
+  textarea,
+  input[type="text"],
+  input[type="number"],
+  input[type="color"] {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 6px;
+    box-sizing: border-box;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #000;
+    transition: background 0.5s, color 0.5s;
+  }
+  body.admin-theme-T textarea,
+  body.admin-theme-T input[type="text"],
+  body.admin-theme-T input[type="number"],
+  body.admin-theme-T input[type="color"] {
+    background: #220022;
+    border-color: #aa0044;
+    color: #f0d0ff;
+  }
+  body.admin-theme-Ieen textarea,
+  body.admin-theme-Ieen input[type="text"],
+  body.admin-theme-Ieen input[type="number"],
+  body.admin-theme-Ieen input[type="color"] {
+    background: #003344;
+    border-color: #00aacc;
+    color: #c0f0ff;
+  }
+  button {
+    cursor: pointer;
+    color: #fff;
+    background: #2196f3;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s;
+  }
+  button:hover {
+    background: #1976d2;
+  }
+  .delete-btn,
+  .delete-post-btn,
+  .follow-btn,
+  .verify-btn,
+  .vote-btn {
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 5px;
+    transition: background 0.3s;
+  }
+  .delete-btn {
+    background: #f44336;
+  }
+  .delete-post-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  .follow-btn {
+    padding: 4px 8px;
+    font-size: 14px;
+  }
+  .verify-btn {
+    background: #4caf50;
+  }
+  .vote-btn {
+    background: #ff9800;
+  }
+  img {
+    max-width: 100%;
+    margin-top: 10px;
+    border-radius: 6px;
+  }
+  #trendDisplayPublic {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #aaa;
+    z-index: 999;
+    font-weight: bold;
+    white-space: pre-wrap;
+    transition: background 0.5s, color 0.5s;
+  }
+  body.admin-theme-T #trendDisplayPublic {
+    background: rgba(40,0,40,0.9);
+    color: #f0d0ff;
+    box-shadow: 0 0 12px #ff0044;
+  }
+  body.admin-theme-Ieen #trendDisplayPublic {
+    background: rgba(0,60,90,0.9);
+    color: #c0f0ff;
+    box-shadow: 0 0 12px #00ccff;
+  }
+  .input-inline {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .input-inline input[type="number"] {
+    width: 60px;
+  }
+  .user-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .verified-badge {
+    display: inline-block;
+    margin-left: 6px;
+    background: #4caf50;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    user-select: none;
+  }
+  .theme-preview {
+    width: 100%;
+    height: 40px;
+    border-radius: 5px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+  }
+  .theme-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.7);
+  }
+  body.admin-theme-T .theme-item {
+    background: rgba(40,0,40,0.7);
+  }
+  body.admin-theme-Ieen .theme-item {
+    background: rgba(0,40,70,0.7);
+  }
+</style>
+</head>
+<body>
+
+<h1>Blog do Ieen 📝</h1>
+
+<div id="author">
+  <label>👤 Nome: <input type="text" id="authorName" placeholder="Seu nome" autocomplete="off" /></label>
+</div>
+
+<!-- Painel Admin (aparece só para "T" e "Ieen") -->
+<div id="adminPanel">
+  <h3>Painel Admin - <span id="adminName"></span></h3>
+  <div id="adminTabs">
+    <button onclick="switchTab('trend')">Trend Topics</button>
+    <button onclick="switchTab('followers')">Seguidores</button>
+    <button onclick="switchTab('likes')">Likes</button>
+    <button onclick="switchTab('posts')">Posts</button>
+    <button onclick="switchTab('themes')">Temas</button>
+  </div>
+  <div id="adminContent">
+    <div id="trendTab" class="active">
+      <label>Editar Trend Topics:</label>
+      <textarea id="trendInput" rows="6"></textarea>
+      <button onclick="saveTrend()">Salvar Trend Topics</button>
+    </div>
+
+    <div id="followersTab">
+      <label>Modificar Seguidores</label>
+      <div id="followersList"></div>
+    </div>
+
+    <div id="likesTab">
+      <label>Modificar Likes dos Posts</label>
+      <div id="likesList"></div>
+    </div>
+
+    <div id="postsTab">
+      <label>Deletar Posts e Comentários</label>
+      <div id="postsList"></div>
+    </div>
+
+    <div id="themesTab">
+      <h4>Criar Novo Tema</h4>
+      <label>Nome do Tema: <input type="text" id="themeName" placeholder="Nome único para o tema" /></label>
+      
+      <div class="input-inline">
+        <label>Cor de Fundo 1: <input type="color" id="themeBg1" value="#000000" /></label>
+        <label>Cor de Fundo 2: <input type="color" id="themeBg2" value="#000000" /></label>
+        <label>Cor de Fundo 3: <input type="color" id="themeBg3" value="#000000" /></label>
+      </div>
+      
+      <div class="input-inline">
+        <label>Cor do Texto: <input type="color" id="themeText" value="#ffffff" /></label>
+        <label>Cor dos Posts: <input type="color" id="themePostBg" value="#1e001e" /></label>
+        <label>Opacidade Posts: <input type="number" id="themePostOpacity" min="0" max="1" step="0.1" value="0.8" /></label>
+      </div>
+      
+      <div class="input-inline">
+        <label>Sombra Posts: <input type="color" id="themePostShadow" value="#aa0044" /></label>
+        <label>Cor Botões: <input type="color" id="themeButton" value="#2196f3" /></label>
+      </div>
+      
+      <div class="theme-preview" id="themePreview"></div>
+      
+      <button onclick="createTheme()">Criar Tema</button>
+      <button onclick="updateThemePreview()">Pré-visualizar</button>
+      
+      <h4 style="margin-top: 20px;">Meus Temas</h4>
+      <div id="userThemesList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="new-post" style="margin-top: 100px;">
+  <textarea id="post-text" placeholder="Escreva seu post..." rows="4" cols="50"></textarea><br>
+  <input type="file" id="imageInput" accept="image/*"><br>
+  <button onclick="addPost()">Postar</button>
+</div>
+
+<div id="posts"></div>
+
+<!-- Painel público Trend Topics -->
+<div id="trendDisplayPublic"></div>
+
+<!-- Seletor de tema para todos os usuários -->
+<div id="themeSelector" style="position: fixed; bottom: 20px; left: 20px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 0 5px #aaa; z-index: 1000;">
+  <label><strong>Tema:</strong>
+    <select id="themeSelect" onchange="setTheme(this.value)">
+      <option value="">Padrão</option>
+      <option value="T">Preto e Vermelho (T)</option>
+      <option value="Ieen">Azul e Ciano (Ieen)</option>
+      <!-- Temas personalizados serão adicionados aqui dinamicamente -->
+    </select>
+  </label>
+</div>
+
+<script>
+  const postsContainer = document.getElementById('posts');
+  const nameInput = document.getElementById('authorName');
+
+  const adminPanel = document.getElementById('adminPanel');
+  const trendInput = document.getElementById('trendInput');
+  const followersList = document.getElementById('followersList');
+  const likesList = document.getElementById('likesList');
+  const postsList = document.getElementById('postsList');
+  const adminNameSpan = document.getElementById('adminName');
+  const themeSelect = document.getElementById('themeSelect');
+  const userThemesList = document.getElementById('userThemesList');
+
+  let posts = JSON.parse(localStorage.getItem('posts')) || [];
+  let follows = JSON.parse(localStorage.getItem('follows')) || {};
+  let userName = localStorage.getItem('username') || "";
+  let trendTopics = localStorage.getItem('trendTopics') || "Nenhum trend topic definido.";
+  let likesGiven = JSON.parse(localStorage.getItem('likesGiven')) || {};
+  let verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || {};
+  let verificationVotes = JSON.parse(localStorage.getItem('verificationVotes')) || {}; 
+  let customThemes = JSON.parse(localStorage.getItem('customThemes')) || {};
+
+  nameInput.value = userName;
+
+  function saveName() {
+    userName = nameInput.value.trim();
+    localStorage.setItem('username', userName);
+    renderPosts();
+    renderTrendTopics();
+    checkAdmin();
+    applyTheme();
+    updateThemeSelector();
+  }
+
+  function savePosts() {
+    localStorage.setItem('posts', JSON.stringify(posts));
+  }
+
+  function saveFollows() {
+    localStorage.setItem('follows', JSON.stringify(follows));
+  }
+
+  function saveTrend() {
+    trendTopics = trendInput.value.trim() || "Nenhum trend topic definido.";
+    localStorage.setItem('trendTopics', trendTopics);
+    renderTrendTopics();
+  }
+
+  function saveLikesGiven() {
+    localStorage.setItem('likesGiven', JSON.stringify(likesGiven));
+  }
+
+  function saveVerifiedUsers() {
+    localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
+  }
+
+  function saveVerificationVotes() {
+    localStorage.setItem('verificationVotes', JSON.stringify(verificationVotes));
+  }
+
+  function saveCustomThemes() {
+    localStorage.setItem('customThemes', JSON.stringify(customThemes));
+    updateThemeSelector();
+  }
+
+  function addPost() {
+    const text = document.getElementById('post-text').value.trim();
+    const fileInput = document.getElementById('imageInput');
+    const file = fileInput.files[0];
+
+    if (!text && !file) return alert("Digite algo ou envie uma imagem!");
+    if (!userName) return alert("Digite seu nome no canto direito.");
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        criarPost(text, e.target.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      criarPost(text, null);
+    }
+
+    document.getElementById('post-text').value = '';
+    fileInput.value = '';
+  }
+
+  function criarPost(text, imgData) {
+    const post = {
+      id: Date.now(),
+      autor: userName,
+      texto: text,
+      imagem: imgData,
+      likes: 0,
+      comentarios: [],
+      data: new Date().toLocaleString()
+    };
+    posts.unshift(post);
+    savePosts();
+    renderPosts();
+    renderAdminPosts();
+    renderAdminLikes();
+  }
+
+  function likePost(id) {
+    if (!userName) {
+      alert("Digite seu nome para curtir.");
+      return;
+    }
+    if (userName === "T" || userName === "Ieen") {
+      // Admin não pode dar likes, só editar via painel
+      alert("Admins não podem curtir posts.");
+      return;
+    }
+    if (!likesGiven[userName]) likesGiven[userName] = [];
+    if (likesGiven[userName].includes(id)) {
+      alert("Você já curtiu esse post.");
+      return;
+    }
+    const post = posts.find(p => p.id === id);
+    if (!post) return;
+    post.likes++;
+    likesGiven[userName].push(id);
+    saveLikesGiven();
+    savePosts();
+    renderPosts();
+    renderAdminLikes();
+  }
+
+  function addComment(postId, inputId) {
+    const input = document.getElementById(inputId);
+    const text = input.value.trim();
+    if (!text) return;
+    if (!userName) return alert("Digite seu nome para comentar.");
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    post.comentarios.push({ autor: userName, texto: text });
+    savePosts();
+    renderPosts();
+    renderAdminPosts();
+    input.value = '';
+  }
+
+  function deletePost(id) {
+    if (!(userName === "T" || userName === "Ieen")) {
+      alert("Você não tem permissão para deletar posts.");
+      return;
+    }
+    posts = posts.filter(p => p.id !== id);
+    savePosts();
+    renderPosts();
+    renderAdminPosts();
+    renderAdminLikes();
+  }
+
+  function deleteComment(postId, commentIndex) {
+    if (!(userName === "T" || userName === "Ieen")) {
+      alert("Você não tem permissão para deletar comentários.");
+      return;
+    }
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    post.comentarios.splice(commentIndex, 1);
+    savePosts();
+    renderPosts();
+    renderAdminPosts();
+  }
+
+  // Seguidores
+  function getFollowerCount(user) {
+    if (!follows[user]) return 0;
+    return follows[user].length;
+  }
+
+  function toggleFollow(targetUser) {
+    if (!userName) return alert("Digite seu nome para seguir.");
+    if (userName === targetUser) return alert("Você não pode seguir você mesmo.");
+    if (!follows[targetUser]) follows[targetUser] = [];
+    if (follows[targetUser].includes(userName)) {
+      follows[targetUser] = follows[targetUser].filter(f => f !== userName);
+    } else {
+      follows[targetUser].push(userName);
+    }
+    saveFollows();
+    renderPosts();
+    renderAdminFollowers();
+  }
+
+  // Verificação
+  function isVerified(user) {
+    return !!verifiedUsers[user];
+  }
+
+  function voteVerification(user) {
+    if (!userName) return alert("Digite seu nome para votar.");
+    if (userName === user) return alert("Você não pode votar em si mesmo.");
+    if (!verificationVotes[user]) verificationVotes[user] = [];
+    if (verificationVotes[user].includes(userName)) {
+      alert("Você já votou para verificar esse usuário.");
+      return;
+    }
+    verificationVotes[user].push(userName);
+    if (verificationVotes[user].length >= 30) {
+      verifiedUsers[user] = true;
+      alert(`${user} foi verificado!`);
+    }
+    saveVerificationVotes();
+    saveVerifiedUsers();
+    renderPosts();
+  }
+
+  function verifyUser(user) {
+    if (!(userName === "T" || userName === "Ieen")) return;
+    if (verifiedUsers[user]) {
+      delete verifiedUsers[user];
+      alert(`Verificação removida de ${user}`);
+    } else {
+      verifiedUsers[user] = true;
+      alert(`${user} foi verificado!`);
+    }
+    saveVerifiedUsers();
+    renderPosts();
+  }
+
+  // Temas personalizados
+  function updateThemePreview() {
+    const bg1 = document.getElementById('themeBg1').value;
+    const bg2 = document.getElementById('themeBg2').value;
+    const bg3 = document.getElementById('themeBg3').value;
+    const preview = document.getElementById('themePreview');
+    preview.style.background = `linear-gradient(135deg, ${bg1}, ${bg2}, ${bg3})`;
+  }
+
+  function createTheme() {
+    if (!(userName === "T" || userName === "Ieen" || isVerified(userName))) {
+      alert("Apenas usuários verificados ou admins podem criar temas.");
+      return;
+    }
+    
+    const themeName = document.getElementById('themeName').value.trim();
+    if (!themeName) return alert("Digite um nome para o tema.");
+    if (themeName === "T" || themeName === "Ieen") return alert("Esse nome de tema é reservado.");
+    
+    const theme = {
+      name: themeName,
+      bg1: document.getElementById('themeBg1').value,
+      bg2: document.getElementById('themeBg2').value,
+      bg3: document.getElementById('themeBg3').value,
+      textColor: document.getElementById('themeText').value,
+      postBg: document.getElementById('themePostBg').value,
+      postOpacity: document.getElementById('themePostOpacity').value,
+      postShadow: document.getElementById('themePostShadow').value,
+      buttonColor: document.getElementById('themeButton').value,
+      creator: userName
+    };
+    
+    if (!customThemes[userName]) customThemes[userName] = {};
+    customThemes[userName][themeName] = theme;
+    
+    saveCustomThemes();
+    renderUserThemes();
+    alert(`Tema "${themeName}" criado com sucesso!`);
+  }
+
+  function renderUserThemes() {
+    if (!(userName === "T" || userName === "Ieen" || isVerified(userName))) {
+      userThemesList.innerHTML = "<p>Apenas usuários verificados podem criar e gerenciar temas.</p>";
+      return;
+    }
+    
+    userThemesList.innerHTML = "";
+    
+    // Mostrar temas do usuário atual
+    if (customThemes[userName]) {
+      for (const [themeName, theme] of Object.entries(customThemes[userName])) {
+        const themeItem = document.createElement('div');
+        themeItem.className = 'theme-item';
+        themeItem.innerHTML = `
+          <h4>${themeName}</h4>
+          <div class="theme-preview" style="background: linear-gradient(135deg, ${theme.bg1}, ${theme.bg2}, ${theme.bg3})"></div>
+          <div style="margin-top: 10px;">
+            <button onclick="applyCustomTheme('${userName}', '${themeName}')">Aplicar</button>
+            <button onclick="deleteCustomTheme('${userName}', '${themeName}')" class="delete-btn">Deletar</button>
+          </div>
+        `;
+        userThemesList.appendChild(themeItem);
+      }
+    }
+    
+    // Se for admin, mostrar todos os temas
+    if (userName === "T" || userName === "Ieen") {
+      for (const [creator, themes] of Object.entries(customThemes)) {
+        if (creator === userName) continue; // Já mostramos os próprios temas
+        for (const [themeName, theme] of Object.entries(themes)) {
+          const themeItem = document.createElement('div');
+          themeItem.className = 'theme-item';
+          themeItem.innerHTML = `
+            <h4>${themeName} (por ${creator})</h4>
+            <div class="theme-preview" style="background: linear-gradient(135deg, ${theme.bg1}, ${theme.bg2}, ${theme.bg3})"></div>
+            <div style="margin-top: 10px;">
+              <button onclick="applyCustomTheme('${creator}', '${themeName}')">Aplicar</button>
+              ${creator === userName ? `<button onclick="deleteCustomTheme('${creator}', '${themeName}')" class="delete-btn">Deletar</button>` : ''}
+            </div>
+          `;
+          userThemesList.appendChild(themeItem);
+        }
+      }
+    }
+  }
+
+  function applyCustomTheme(creator, themeName) {
+    const theme = customThemes[creator][themeName];
+    if (!theme) return;
+    
+    // Adiciona o estilo dinamicamente
+    const styleId = `custom-theme-${creator}-${themeName}`;
+    let style = document.getElementById(styleId);
+    
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      document.head.appendChild(style);
+    }
+    
+    style.textContent = `
+      body.custom-theme-${creator}-${themeName} {
+        background: linear-gradient(135deg, ${theme.bg1}, ${theme.bg2}, ${theme.bg3});
+        color: ${theme.textColor};
+      }
+      body.custom-theme-${creator}-${themeName} .post {
+        background: rgba(${hexToRgb(theme.postBg)}, ${theme.postOpacity});
+        box-shadow: 0 0 12px ${theme.postShadow};
+        color: ${theme.textColor};
+      }
+      body.custom-theme-${creator}-${themeName} #author,
+      body.custom-theme-${creator}-${themeName} #adminPanel,
+      body.custom-theme-${creator}-${themeName} #trendDisplayPublic {
+        background: rgba(${hexToRgb(theme.postBg)}, 0.9);
+        color: ${theme.textColor};
+      }
+      body.custom-theme-${creator}-${themeName} button,
+      body.custom-theme-${creator}-${themeName} .follow-btn,
+      body.custom-theme-${creator}-${themeName} .vote-btn {
+        background: ${theme.buttonColor};
+      }
+      body.custom-theme-${creator}-${themeName} .verify-btn {
+        background: #4caf50;
+      }
+      body.custom-theme-${creator}-${themeName} .delete-btn {
+        background: #f44336;
+      }
+    `;
+    
+    // Aplica o tema
+    document.body.className = `custom-theme-${creator}-${themeName}`;
+    document.getElementById('themeSelect').value = `${creator}|${themeName}`;
+  }
+
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `${r}, ${g}, ${b}`;
+  }
+
+  function deleteCustomTheme(creator, themeName) {
+    if (!(userName === "T" || userName === "Ieen" || userName === creator)) {
+      alert("Você só pode deletar seus próprios temas.");
+      return;
+    }
+    
+    if (confirm(`Tem certeza que deseja deletar o tema "${themeName}"?`)) {
+      delete customThemes[creator][themeName];
+      if (Object.keys(customThemes[creator]).length === 0) {
+        delete customThemes[creator];
+      }
+      saveCustomThemes();
+      renderUserThemes();
+      updateThemeSelector();
+    }
+  }
+
+  function updateThemeSelector() {
+    // Limpa opções existentes (exceto as padrão)
+    while (themeSelect.options.length > 3) {
+      themeSelect.remove(3);
+    }
+    
+    // Adiciona temas personalizados
+    for (const [creator, themes] of Object.entries(customThemes)) {
+      for (const [themeName, theme] of Object.entries(themes)) {
+        const option = document.createElement('option');
+        option.value = `${creator}|${themeName}`;
+        option.textContent = `${themeName} (por ${creator})`;
+        themeSelect.appendChild(option);
+      }
+    }
+  }
+
+  function setTheme(themeValue) {
+    if (!themeValue) {
+      document.body.className = '';
+    } else if (themeValue === "T") {
+      document.body.className = 'admin-theme-T';
+    } else if (themeValue === "Ieen") {
+      document.body.className = 'admin-theme-Ieen';
+    } else if (themeValue.includes("|")) {
+      const [creator, themeName] = themeValue.split('|');
+      applyCustomTheme(creator, themeName);
+    }
+  }
+
+  // Renderização dos posts
+  function renderPosts() {
+    postsContainer.innerHTML = '';
+    posts.forEach(post => {
+      const isAuthor = post.autor === userName;
+      const followerCount = getFollowerCount(post.autor);
+      const verified = isVerified(post.autor);
+      const following = follows[post.autor]?.includes(userName);
+
+      let verifyButton = '';
+      if (userName === "T" || userName === "Ieen") {
+        verifyButton = `<button class="verify-btn" onclick="verifyUser('${post.autor}')">
+          ${verified ? 'Remover Verificado' : 'Verificar usuário'}
+        </button>`;
+      } else if (userName !== post.autor) {
+        verifyButton = `<button class="vote-btn" onclick="voteVerification('${post.autor}')">Votar para verificar</button>`;
+      }
+
+      const followText = (follows[post.autor]?.includes(userName)) ? "Seguindo" : "Seguir";
+
+      const verifiedBadge = verified ? `<span class="verified-badge">✔</span>` : "";
+
+      let postHtml = `
+        <div class="post">
+          <div><strong>${post.autor} ${verifiedBadge}</strong> - ${post.data}</div>
+          <div>${post.texto.replace(/\n/g, '<br>')}</div>
+          ${post.imagem ? `<img src="${post.imagem}" alt="Imagem do post" />` : ''}
+          <div>
+            <span class="like" onclick="likePost(${post.id})">❤️ ${post.likes}</span>
+            <button class="follow-btn" onclick="toggleFollow('${post.autor}')">${followText} (${followerCount})</button>
+            ${verifyButton}
+            ${isAuthor || userName === "T" || userName === "Ieen" ? `<button class="delete-post-btn delete-btn" onclick="deletePost(${post.id})">Deletar Post</button>` : ''}
+          </div>
+          <div class="comments">
+            <strong>Comentários:</strong>
+            ${post.comentarios.map((c, i) => `
+              <div class="comment">
+                <span><strong>${c.autor}:</strong> ${c.texto}</span>
+                ${(userName === c.autor || userName === "T" || userName === "Ieen") ? `<button class="delete-btn" onclick="deleteComment(${post.id}, ${i})">x</button>` : ''}
+              </div>
+            `).join('')}
+            <div style="margin-top:5px;">
+              <input type="text" id="commentInput${post.id}" placeholder="Comentar..." />
+              <button onclick="addComment(${post.id}, 'commentInput${post.id}')">Comentar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      postsContainer.insertAdjacentHTML('beforeend', postHtml);
+    });
+  }
+
+  // Admin render
+  function switchTab(tab) {
+    document.querySelectorAll('#adminContent > div').forEach(div => div.classList.remove('active'));
+    document.getElementById(tab + 'Tab').classList.add('active');
+    
+    if (tab === 'themes') {
+      renderUserThemes();
+    }
+  }
+
+  // Render admin lists
+  function renderAdminPosts() {
+    postsList.innerHTML = posts.map(post => `
+      <div>
+        <strong>${post.autor}</strong>: ${post.texto.substring(0, 30)}... 
+        <button class="delete-btn" onclick="deletePost(${post.id})">Deletar</button>
+      </div>
+    `).join('');
+  }
+  function renderAdminFollowers() {
+    followersList.innerHTML = '';
+    const allUsers = new Set(posts.map(p => p.autor).concat(Object.keys(follows)));
+    allUsers.forEach(user => {
+      const count = getFollowerCount(user);
+      followersList.insertAdjacentHTML('beforeend', `
+        <div class="user-list-item">
+          <span>${user} - Seguidores: ${count}</span>
+        </div>
+      `);
+    });
+  }
+  function renderAdminLikes() {
+    likesList.innerHTML = posts.map(post => `
+      <div>
+        <strong>${post.autor}</strong>: ${post.likes} likes
+      </div>
+    `).join('');
+  }
+
+  // Render Trend Topics
+  function renderTrendTopics() {
+    document.getElementById('trendDisplayPublic').textContent = trendTopics;
+    trendInput.value = trendTopics;
+  }
+
+  // Checa se é admin e mostra painel
+  function checkAdmin() {
+    if (userName === "T" || userName === "Ieen" || isVerified(userName)) {
+      adminPanel.style.display = 'block';
+      adminNameSpan.textContent = userName;
+      renderAdminPosts();
+      renderAdminFollowers();
+      renderAdminLikes();
+      renderUserThemes();
+    } else {
+      adminPanel.style.display = 'none';
+    }
+  }
+
+  // Atualiza tudo no load e oninput
+  nameInput.addEventListener('change', saveName);
+  nameInput.addEventListener('blur', saveName);
+
+  // Inicializa
+  renderPosts();
+  renderTrendTopics();
+  checkAdmin();
+  updateThemeSelector();
+
+  // Tema fixo aplicado só para admin para exemplo
+  function applyTheme() {
+    if (userName === "T") {
+      document.body.className = 'admin-theme-T';
+    } else if (userName === "Ieen") {
+      document.body.className = 'admin-theme-Ieen';
+    } else {
+      document.body.className = '';
+    }
+  }
+  applyTheme();
+
+  // Atualiza pré-visualização do tema ao carregar
+  updateThemePreview();
+</script>
+
+</body>
+</html>
